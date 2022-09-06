@@ -42,17 +42,10 @@ app.post('/user', async (req , res ,next ) => {
                 res.status(201).json({
                     message: 'User registered successfully!'
                 })
-                console.log(result.affectedRows);
             }
         })
        
-       /*
-        console.log(users);
-        res.status(201).json({
-            message: 'Registered Successfully!',
-            user: users
-        });
-        */
+       
     } catch {
         res.status(500).json({
               errorMessage: 'Error'
@@ -63,29 +56,31 @@ app.post('/user', async (req , res ,next ) => {
 });
 
 app.post('/user/login' ,async (req , res ,next) => {
-    console.log(users);
-    const user = users.find(user => user.username === req.body.username);
-    if (user == null){
-        res.status(400).json({
-            message: 'User not found!'
-        })
-        return;
-    }
-    try {
-        if( await bcrypt.compare(req.body.password, user.password)) {
-            res.status(200).json({
-                message: 'Login successfully!!!'
+    const email = req.body.email;
+    const password = req.body.password;
+    const sql = 'SELECT password FROM login WHERE email = ? ';
+    conn.query(sql, [email] , async (err, result) => {
+        if (result == null){
+            res.status(400).json({
+                message: 'User not found!'
             });
-        } else {
-            res.status(200).json({
-                message: 'Incorrect password!'
-            }); 
+        } 
+        try {
+            if (await bcrypt.compare(password, result[0].password)) {
+                res.status(200).json({
+                    message: 'Login Successfull!'
+                });
+            } else {
+                res.status(200).json({
+                    message: '*Incorrect password*'
+                }); 
+            }
+        } catch  {
+            res.status(500).json({
+                errorMessage: 'Error'
+            })
         }
-    } catch {
-        res.status(500).json({
-            errorMessage: 'Error'
-        })
-    } 
+    })
 });
 
 
